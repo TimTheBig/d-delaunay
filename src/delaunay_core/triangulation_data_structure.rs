@@ -282,7 +282,7 @@ where
                         if !bad_cells.iter().any(|&id| {
                             self.cells
                                 .get(&id)
-                                .map_or(false, |c| c.facets().contains(&facet))
+                                .is_some_and(|c| c.facets().contains(&facet))
                         }) {
                             boundary_facets.push(facet);
                         }
@@ -315,10 +315,12 @@ where
         Ok(self)
     }
 
+    #[allow(unused)]
     fn assign_neighbors(&mut self, _cells: Vec<Cell<T, U, V, D>>) -> Result<(), &'static str> {
         todo!("Assign neighbors")
     }
 
+    #[allow(unused)]
     fn assign_incident_cells(
         &mut self,
         _vertices: Vec<Vertex<T, U, D>>,

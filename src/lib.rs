@@ -11,7 +11,6 @@
 
 #[macro_use]
 extern crate derive_builder;
-extern crate peroxide;
 
 /// The main module of the library. This module contains the public interface
 /// for the library.
