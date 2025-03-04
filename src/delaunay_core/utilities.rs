@@ -1,7 +1,7 @@
 //! Utility functions
 
-use crate::Coord;
 use super::vertex::Vertex;
+use crate::Coord;
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
 use uuid::Uuid;
 

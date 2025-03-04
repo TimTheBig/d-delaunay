@@ -1,10 +1,10 @@
 //! Data and operations on d-dimensional points.
 
+use crate::{Coord, Coordf64};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use crate::{Coord, Coordf64};
 
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, PartialOrd,)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, PartialOrd)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// The [Point] struct represents a point in a D-dimensional space, where the
 /// coordinates are of type `T`.

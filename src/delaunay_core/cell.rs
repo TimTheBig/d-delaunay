@@ -1,6 +1,5 @@
 //! Data and operations on d-dimensional cells or [simplices](https://en.wikipedia.org/wiki/Simplex).
 
-use crate::{Coord, Coordf64};
 use super::{
     facet::Facet,
     matrix::invert,
@@ -8,6 +7,7 @@ use super::{
     utilities::{make_uuid, vec_to_array},
     vertex::Vertex,
 };
+use crate::{Coord, Coordf64};
 use na::{ComplexField, Const, OPoint};
 use nalgebra as na;
 use peroxide::fuga::*;
@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt::Debug, hash::Hash, iter::Sum};
 use uuid::Uuid;
 
-#[derive(Builder, Clone, Debug, Default, Eq,)]
+#[derive(Builder, Clone, Debug, Default, Eq)]
 #[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[builder(build_fn(validate = "Self::validate"))]
 /// The [Cell] struct represents a d-dimensional

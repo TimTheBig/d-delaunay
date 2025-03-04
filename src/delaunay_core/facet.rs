@@ -6,8 +6,8 @@
 //! Facets are not stored in the `Triangulation Data Structure` (TDS)
 //! directly, but created on the fly when needed.
 
-use crate::Coord;
 use super::{cell::Cell, vertex::Vertex};
+use crate::Coord;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::hash::Hash;

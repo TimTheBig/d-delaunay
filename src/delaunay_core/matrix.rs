@@ -49,11 +49,9 @@ pub enum MatrixError {
 
 #[cfg(test)]
 mod tests {
-
-    use peroxide::c;
-    use peroxide::fuga::*;
-
     use super::*;
+    use peroxide::c;
+    // use peroxide::fuga::*;
 
     #[test]
     fn matrix_default() {

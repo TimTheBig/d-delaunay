@@ -3,11 +3,11 @@
 //! Intended to match functionality of the
 //! [CGAL Triangulation](https://doc.cgal.org/latest/Triangulation/index.html).
 
-use crate::{Coord, Coordf64};
 use super::{
     cell::Cell, cell::CellBuilder, point::Point, utilities::find_extreme_coordinates,
     vertex::Vertex,
 };
+use crate::{Coord, Coordf64};
 use na::{ComplexField, Const, OPoint};
 use nalgebra as na;
 #[cfg(feature = "serde")]
