@@ -9,9 +9,11 @@
 //! * Arbitrary data types associated with vertices and cells
 //! * Serialization/Deserialization with [serde](https://serde.rs)
 
+#[cfg(feature = "serde")]
+use serde::{de::DeserializeOwned, Serialize};
+
 #[macro_use]
 extern crate derive_builder;
-extern crate peroxide;
 
 /// The main module of the library. This module contains the public interface
 /// for the library.
@@ -33,10 +35,35 @@ pub mod delaunay_core {
     pub use vertex::*;
 }
 
+// Make use of serde when enabled
+/// The bounds of coord arrays
+#[cfg(feature = "serde")]
+pub trait Coord: Copy + Default + DeserializeOwned + Serialize + Sized {}
+/// The bounds of coord arrays
+#[cfg(not(feature = "serde"))]
+pub trait Coord: Copy + Default + Sized {}
+
+#[cfg(feature = "serde")]
+impl<T: Copy + Default + DeserializeOwned + Serialize + Sized> Coord for T {}
+#[cfg(not(feature = "serde"))]
+impl<T: Copy + Default + Sized> Coord for T {}
+
+/// The bounds of `f64` coord arrays
+#[cfg(feature = "serde")]
+pub trait Coordf64: Default + DeserializeOwned + Serialize + Sized {}
+/// The bounds of `f64` coord arrays
+#[cfg(not(feature = "serde"))]
+pub trait Coordf64: Default + Sized {}
+
+#[cfg(feature = "serde")]
+impl<T: Default + DeserializeOwned + Serialize + Sized> Coordf64 for T {}
+#[cfg(not(feature = "serde"))]
+impl<T: Default + Sized> Coordf64 for T {}
+
 /// The function `is_normal` checks that structs implement `auto` traits.
 /// Traits are checked at compile time, so this function is only used for
 /// testing.
-#[allow(clippy::extra_unused_type_parameters)]
+#[allow(clippy::extra_unused_type_parameters, unused)]
 fn is_normal<T: Sized + Send + Sync + Unpin>() -> bool {
     true
 }

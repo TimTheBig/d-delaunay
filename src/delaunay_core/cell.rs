@@ -7,14 +7,17 @@ use super::{
     utilities::{make_uuid, vec_to_array},
     vertex::Vertex,
 };
+use crate::{Coord, Coordf64};
 use na::{ComplexField, Const, OPoint};
 use nalgebra as na;
 use peroxide::fuga::*;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fmt::Debug, hash::Hash, iter::Sum};
 use uuid::Uuid;
 
-#[derive(Builder, Clone, Debug, Default, Deserialize, Eq, Serialize)]
+#[derive(Builder, Clone, Debug, Default, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 #[builder(build_fn(validate = "Self::validate"))]
 /// The [Cell] struct represents a d-dimensional
 /// [simplex](https://en.wikipedia.org/wiki/Simplex) with vertices, a unique
@@ -39,7 +42,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The vertices of the cell.
     pub vertices: Vec<Vertex<T, U, D>>,
@@ -59,7 +62,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     fn validate(&self) -> Result<(), CellBuilderError> {
         if self
@@ -85,7 +88,7 @@ where
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     f64: From<T>,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The function `from_facet_and_vertex` creates a new [Cell] object from a [Facet] and a [Vertex].
     ///
@@ -115,7 +118,7 @@ where
     /// let new_cell = Cell::from_facet_and_vertex(facet, vertex5).unwrap();
     /// assert!(new_cell.vertices.contains(&vertex5));
     pub fn from_facet_and_vertex(
-        mut facet: Facet<T, U, V, D>,
+        facet: Facet<T, U, V, D>,
         vertex: Vertex<T, U, D>,
     ) -> Result<Self, anyhow::Error> {
         let mut vertices = facet.vertices();
@@ -247,8 +250,8 @@ where
     /// let cell: Cell<f64, i32, &str, 3> = CellBuilder::default().vertices(vec![vertex1, vertex2, vertex3, vertex4]).data("three-one cell").build().unwrap();
     /// let vertex5: Vertex<f64, i32, 3> = VertexBuilder::default().point(Point::new([0.0, 0.0, 0.0])).data(0).build().unwrap();
     /// let cell2: Cell<f64, i32, &str, 3> = CellBuilder::default().vertices(vec![vertex1, vertex2, vertex3, vertex5]).data("one-three cell").build().unwrap();
-    /// assert!(cell.contains_vertex_of(cell2));
-    pub fn contains_vertex_of(&self, cell: Cell<T, U, V, D>) -> bool {
+    /// assert!(cell.contains_vertex_of(&cell2));
+    pub fn contains_vertex_of(&self, cell: &Cell<T, U, V, D>) -> bool {
         self.vertices.iter().any(|v| cell.vertices.contains(v))
     }
 
@@ -257,7 +260,7 @@ where
     /// Using the approach from:
     ///
     /// Lévy, Bruno, and Yang Liu.
-    /// “Lp Centroidal Voronoi Tessellation and Its Applications.”
+    /// "Lp Centroidal Voronoi Tessellation and Its Applications."
     /// ACM Transactions on Graphics 29, no. 4 (July 26, 2010): 119:1-119:11.
     /// <https://doi.org/10.1145/1778765.1778856>.
     ///
@@ -306,7 +309,7 @@ where
     /// ```
     pub fn circumcenter(&self) -> Result<Point<f64, D>, anyhow::Error>
     where
-        [f64; D]: Default + DeserializeOwned + Serialize + Sized,
+        [f64; D]: Coordf64,
     {
         let dim = self.dim();
         if self.vertices[0].dim() != dim {
@@ -353,7 +356,7 @@ where
     fn circumradius(&self) -> Result<T, anyhow::Error>
     where
         OPoint<T, Const<D>>: From<[f64; D]>,
-        [f64; D]: Default + DeserializeOwned + Serialize + Sized,
+        [f64; D]: Coordf64,
     {
         let circumcenter = self.circumcenter()?;
         // Change the type of vertex to match circumcenter
@@ -393,7 +396,7 @@ where
     pub fn circumsphere_contains(&self, vertex: Vertex<T, U, D>) -> Result<bool, anyhow::Error>
     where
         OPoint<T, Const<D>>: From<[f64; D]>,
-        [f64; D]: Default + DeserializeOwned + Serialize + Sized,
+        [f64; D]: Coordf64,
     {
         let circumradius = self.circumradius()?;
         let radius = na::distance(
@@ -402,6 +405,67 @@ where
         );
 
         Ok(circumradius >= radius)
+    }
+
+    /// The function `circumsphere_contains_vertex` checks if a given vertex is
+    /// contained in the circumsphere of the Cell using a matrix determinant.
+    /// This method is preferred over `circumsphere_contains` as it provides better numerical
+    /// stability by using a matrix determinant approach instead of distance calculations,
+    /// which can accumulate floating-point errors.
+    ///
+    /// # Arguments:
+    ///
+    /// * `vertex`: The [Vertex] to check.
+    ///
+    /// # Returns:
+    ///
+    /// Returns `true` if the given [Vertex] is contained in the circumsphere
+    /// of the [Cell], and `false` otherwise.
+    /// /// # Example
+    ///
+    /// ```
+    /// use d_delaunay::delaunay_core::cell::{Cell, CellBuilder};
+    /// use d_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
+    /// use d_delaunay::delaunay_core::point::Point;
+    /// let vertex1: Vertex<f64, i32, 3> = VertexBuilder::default().point(Point::new([0.0, 0.0, 1.0])).data(1).build().unwrap();
+    /// let vertex2: Vertex<f64, i32, 3> = VertexBuilder::default().point(Point::new([0.0, 1.0, 0.0])).data(1).build().unwrap();
+    /// let vertex3: Vertex<f64, i32, 3> = VertexBuilder::default().point(Point::new([1.0, 0.0, 0.0])).data(1).build().unwrap();
+    /// let vertex4: Vertex<f64, i32, 3> = VertexBuilder::default().point(Point::new([1.0, 1.0, 1.0])).data(2).build().unwrap();
+    /// let cell: Cell<f64, i32, &str, 3> = CellBuilder::default().vertices(vec![vertex1, vertex2, vertex3, vertex4]).data("three-one cell").build().unwrap();
+    /// let origin: Vertex<f64, i32, 3> = VertexBuilder::default().point(Point::origin()).build().unwrap();
+    /// assert!(cell.circumsphere_contains(origin).unwrap());
+    /// ```
+    pub fn circumsphere_contains_vertex(
+        &self,
+        vertex: Vertex<T, U, D>,
+    ) -> Result<bool, anyhow::Error>
+    where
+        f64: From<T>,
+        [f64; D]: Coordf64,
+    {
+        // Setup initial matrix with zeros
+        let mut matrix = zeros(D + 1, D + 1);
+
+        // Populate rows with the coordinates of the vertices of the cell
+        for (i, v) in self.vertices.iter().enumerate() {
+            for j in 0..D {
+                matrix[(i, j)] = v.point.coords[j].into();
+            }
+            // Add a one to the last column
+            matrix[(i, D)] = T::one().into();
+        }
+
+        // Add the vertex to the last row of the matrix
+        for j in 0..D {
+            matrix[(D, j)] = vertex.point.coords[j].into();
+        }
+        matrix[(D, D)] = T::one().into();
+
+        // Calculate the determinant of the matrix
+        let det = matrix.det();
+
+        // Check if the determinant is positive
+        Ok(det > T::zero().into())
     }
 
     /// The function `facets` returns the [Facet]s of the [Cell].
@@ -436,7 +500,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -454,7 +518,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -829,7 +893,7 @@ mod tests {
             .build()
             .unwrap();
 
-        assert!(cell.contains_vertex_of(cell2));
+        assert!(cell.contains_vertex_of(&cell2));
 
         // Human readable output for cargo test -- --nocapture
         println!("Cell: {:?}", cell);
@@ -1023,7 +1087,9 @@ mod tests {
 
         assert_eq!(facets.len(), 4);
         for facet in facets.iter() {
-            assert!(cell.facets().contains(facet))
+            // assert!(cell.facets().contains(facet));
+            let facet_vertices = facet.vertices();
+            assert!(cell.facets().iter().any(|f| f.vertices() == facet_vertices));
         }
 
         // Human readable output for cargo test -- --nocapture

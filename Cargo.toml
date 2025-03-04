@@ -1,26 +1,33 @@
 [package]
 name = "d-delaunay"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
+description = "D-dimensional Delaunay triangulations, inspired by CGAL."
+readme = "README.md"
+rust-version = "1.78.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.87"
-derive_builder = "0.20.1"
-nalgebra = "0.33.0"
-num-traits = "0.2.19"
-peroxide = "0.37.9"
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128" 
-serde_test = "1.0.177"
-thiserror = "1.0.63"
-uuid = { version = "1.10.0", features = ["v4", "fast-rng", "macro-diagnostics", "serde"] }
+anyhow = "1.0"
+derive_builder = "0.20.2"
+nalgebra = "0.33"
+num-traits = "0.2"
+peroxide = "0.39"
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_test = "1.0"
+thiserror = "2.0"
+uuid = { version = "1.15", features = ["v4", "fast-rng", "macro-diagnostics", "serde"] }
+
+[dev-dependencies]
+d-delaunay = { path = "./", features = ["serde"]}
+serde_json = "1.0" 
 
 [lints.rust]
-unsafe_code = "forbid"
+unsafe_code = { level = "forbid", priority = 3 }
 dead_code = "allow"
-missing_docs = "warn"
+missing_docs = { level = "warn", priority = 1 }
+unused = { level = "deny", priority = 2 }
 
 [lints.clippy]
 extra_unused_type_parameters = "warn"

@@ -1,8 +1,11 @@
 //! Data and operations on d-dimensional points.
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use crate::{Coord, Coordf64};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Eq, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// The [Point] struct represents a point in a D-dimensional space, where the
 /// coordinates are of type `T`.
 ///
@@ -12,20 +15,20 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 ///   type `T` with a length of `D`. The type `T` is a generic type parameter,
 ///   which means it can be any type. The length `D` is a constant unsigned
 ///   integer known at compile time.
-pub struct Point<T, const D: usize>
+pub struct Point<T, const DIMS: usize>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; DIMS]: Coord,
 {
     /// The coordinates of the point.
-    pub coords: [T; D],
+    pub coords: [T; DIMS],
 }
 
 impl<T, const D: usize> From<[T; D]> for Point<f64, D>
 where
     T: Clone + Copy + Default + Into<f64> + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
-    [f64; D]: Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
+    [f64; D]: Coordf64,
     f64: From<T>,
 {
     fn from(coords: [T; D]) -> Self {
@@ -38,7 +41,7 @@ where
 impl<T, const D: usize> Point<T, D>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The function `new` creates a new instance of a [Point] with the given
     /// coordinates.

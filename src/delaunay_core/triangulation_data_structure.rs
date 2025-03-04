@@ -4,18 +4,21 @@
 //! [CGAL Triangulation](https://doc.cgal.org/latest/Triangulation/index.html).
 
 use super::{
-    cell::Cell, cell::CellBuilder, facet::Facet, point::Point, utilities::find_extreme_coordinates,
+    cell::Cell, cell::CellBuilder, point::Point, utilities::find_extreme_coordinates,
     vertex::Vertex,
 };
+use crate::{Coord, Coordf64};
 use na::{ComplexField, Const, OPoint};
 use nalgebra as na;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::cmp::{min, Ordering, PartialEq};
 use std::ops::{AddAssign, Div, SubAssign};
 use std::{collections::HashMap, hash::Hash, iter::Sum};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// The `Tds` struct represents a triangulation data structure with vertices
 /// and cells, where the vertices and cells are identified by UUIDs.
 ///
@@ -43,17 +46,17 @@ use uuid::Uuid;
 ///
 /// In general, vertices are embedded into D-dimensional Euclidean space,
 /// and so the [Tds] is a finite simplicial complex.
-pub struct Tds<T, U, V, const D: usize>
+pub struct Tds<T, VD, CD, const DIMS: usize>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
-    U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    VD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    CD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    [T; DIMS]: Coord,
 {
     /// A [HashMap] that stores [Vertex] objects with their corresponding [Uuid]s as
     /// keys. Each [Vertex] has a [Point] of type T, vertex data of type U,
     /// and a constant D representing the dimension.
-    pub vertices: HashMap<Uuid, Vertex<T, U, D>>,
+    pub vertices: HashMap<Uuid, Vertex<T, VD, DIMS>>,
 
     /// A [HashMap] that stores [Cell] objects with their corresponding [Uuid]s as
     /// keys.
@@ -61,10 +64,10 @@ where
     /// Note the dimensionality of the cell may differ from D, though the [Tds]
     /// only stores cells of maximal dimensionality D and infers other lower
     /// dimensional cells from the maximal cells and their vertices.
-    pub cells: HashMap<Uuid, Cell<T, U, V, D>>,
+    pub cells: HashMap<Uuid, Cell<T, VD, CD, DIMS>>,
 }
 
-impl<T, U, V, const D: usize> Tds<T, U, V, D>
+impl<T, VD, CD, const D: usize> Tds<T, VD, CD, D>
 where
     T: AddAssign<f64>
         + Clone
@@ -75,11 +78,11 @@ where
         + PartialOrd
         + SubAssign<f64>
         + Sum,
-    U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    VD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    CD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     f64: From<T>,
     for<'a> &'a T: Div<f64>,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The function creates a new instance of a triangulation data structure
     /// with given points, initializing the vertices and cells.
@@ -129,11 +132,11 @@ where
     /// let result = tds.add(vertex);
     /// assert!(result.is_ok());
     /// ```
-    pub fn add(&mut self, vertex: Vertex<T, U, D>) -> Result<(), &'static str> {
+    pub fn add(&mut self, vertex: Vertex<T, VD, D>) -> Result<(), &'static str> {
         // Don't add if vertex with that point already exists
         for val in self.vertices.values() {
             if val.point.coords == vertex.point.coords {
-                return Err("Vertex already exists!");
+                return Err("Vertex already exists");
             }
         }
 
@@ -143,7 +146,7 @@ where
 
         // Return an error if there is a uuid collision
         match result {
-            Some(_) => Err("Uuid already exists!"),
+            Some(_) => Err("Uuid already exists"),
             None => Ok(()),
         }
     }
@@ -206,7 +209,7 @@ where
     /// # Returns:
     ///
     /// A [Cell] that encompasses all [Vertex] objects in the triangulation.
-    fn supercell(&self) -> Result<Cell<T, U, V, D>, anyhow::Error> {
+    fn supercell(&self) -> Result<Cell<T, VD, CD, D>, anyhow::Error> {
         // First, find the min and max coordinates
         let mut min_coords = find_extreme_coordinates(self.vertices.clone(), Ordering::Less);
         let mut max_coords = find_extreme_coordinates(self.vertices.clone(), Ordering::Greater);
@@ -235,8 +238,9 @@ where
             }
 
             // Add slice of max_point_coords matrix as a new point
-            let point =
-                Point::<T, D>::new(row_vec.into_boxed_slice().into_vec().try_into().unwrap());
+            let point = Point::<T, D>::new(
+                row_vec.into_boxed_slice().into_vec().try_into().unwrap()
+            );
             points.push(point);
         }
 
@@ -252,102 +256,78 @@ where
     ///
     /// # Returns:
     ///
-    /// A [Result] containing a [Vec] of [Cell] objects representing the triangulation, or an error message.
-    fn bowyer_watson(&mut self) -> Result<Vec<Cell<T, U, V, D>>, anyhow::Error>
+    /// A [Result] containing the updated [Tds] with the Delaunay triangulation, or an error message.
+    pub fn bowyer_watson(mut self) -> Result<Self, anyhow::Error>
     where
         OPoint<T, Const<D>>: From<[f64; D]>,
-        [f64; D]: Default + DeserializeOwned + Serialize + Sized,
+        [f64; D]: Coordf64,
     {
-        let mut triangulation: Vec<Cell<T, U, V, D>> = Vec::new();
-
         // Create super-cell that contains all vertices
         let supercell = self.supercell()?;
-        triangulation.push(supercell.clone());
+        self.cells.insert(supercell.uuid, supercell.clone());
 
         // Iterate over vertices
         for vertex in self.vertices.values() {
-            // Find cells that contain the vertex
-            let mut bad_cells: Vec<Cell<T, U, V, D>> = Vec::new();
+            let mut bad_cells = Vec::new();
+            let mut boundary_facets = Vec::new();
 
-            for cell in &triangulation {
-                if cell.circumsphere_contains(*vertex)? {
-                    bad_cells.push((*cell).clone());
+            // Find cells whose circumsphere contains the vertex
+            for (cell_id, cell) in self.cells.iter() {
+                // if cell.circumsphere_contains(vertex)? {
+                if cell.circumsphere_contains_vertex(*vertex)? {
+                    bad_cells.push(*cell_id);
                 }
             }
 
-            // Find the boundary of the hole left by the bad cells
-            let mut boundary_facets: Vec<Facet<T, U, V, D>> = Vec::new();
-            for bad_cell in &bad_cells {
-                for facet in bad_cell.facets() {
-                    if !bad_cells.iter().any(|c| c.facets().contains(&facet)) {
-                        boundary_facets.push(facet);
+            // Collect boundary facets
+            for &bad_cell_id in &bad_cells {
+                if let Some(bad_cell) = self.cells.get(&bad_cell_id) {
+                    for facet in bad_cell.facets() {
+                        if !bad_cells.iter().any(|&id| {
+                            self.cells
+                                .get(&id)
+                                .is_some_and(|c| c.facets().contains(&facet))
+                        }) {
+                            boundary_facets.push(facet);
+                        }
                     }
                 }
             }
 
-            // Remove bad cells from triangulation
-            triangulation.retain(|cell| !bad_cells.contains(cell));
+            // Remove bad cells
+            for bad_cell_id in bad_cells {
+                self.cells.remove(&bad_cell_id);
+            }
 
-            // Create new cells from the boundary facets and new vertex
+            // Create new cells using the boundary facets and the new vertex
             for facet in boundary_facets {
                 let new_cell = Cell::from_facet_and_vertex(facet, *vertex)?;
-                triangulation.push(new_cell);
+                self.cells.insert(new_cell.uuid, new_cell);
             }
         }
 
-        //     // Find the boundary of the polygonal hole
-        //     let mut polygonal_hole: Vec<Facet<T, U, V, D>> = Vec::new();
-        //     for cell in bad_cells.iter() {
-        //         // Create Facets from the Cell
-        //         for vertex in cell.vertices.iter() {
-        //             let facet = Facet::new(cell.clone(), *vertex)?;
-        //             polygonal_hole.push(facet);
-        //         }
+        // Remove cells that contain vertices of the supercell
+        self.cells
+            .retain(|_, cell| !cell.contains_vertex_of(&supercell));
 
-        //         // for vertex in cell.vertices.iter() {
-        //         //     if bad_cells.iter().any(|c| c.contains_vertex(vertex)) {
-        //         //         polygonal_hole.push(vertex.clone());
-        //         //     }
-        //         // }
-        //     }
+        // Need Vertex to implement Eq and Hash to use the following code
+        // let supercell_vertices: HashSet<_> = supercell.vertices.iter().collect();
+        // self.cells.retain(|_, cell| {
+        //     !cell.vertices.iter().any(|v| supercell_vertices.contains(v))
+        // });
 
-        //     // Remove duplicate facets
-        //     polygonal_hole.sort_by(|a, b| a.partial_cmp(b).unwrap());
-        //     polygonal_hole.dedup();
-
-        //     // Remove bad cells from the triangulation
-        //     for cell in bad_cells.iter() {
-        //         triangulation.remove(triangulation.iter().position(|c| c == cell).unwrap());
-        //     }
-
-        //     // Re-triangulate the polygonal hole
-        //     for mut facet in polygonal_hole.iter().cloned() {
-        //         let mut new_cell_vertices: Vec<Vertex<T, U, D>> = Vec::new();
-        //         for facet_vertex in facet.vertices().iter() {
-        //             new_cell_vertices.push(*facet_vertex);
-        //         }
-        //         new_cell_vertices.push(*vertex);
-        //         triangulation.push(Cell::new(new_cell_vertices)?);
-        //     }
-        // }
-
-        // // Remove all cells containing vertices from the supercell
-        // triangulation
-        //     .retain(|c| !c.contains_vertex(supercell.vertices.clone().into_iter().next().unwrap()));
-
-        // Remove any cells that contain a vertex of the supercell
-        triangulation.retain(|cell| !cell.contains_vertex_of(supercell.clone()));
-
-        Ok(triangulation)
+        Ok(self)
     }
 
-    fn assign_neighbors(&mut self, _cells: Vec<Cell<T, U, V, D>>) -> Result<(), &'static str> {
+    #[allow(unused)]
+    fn assign_neighbors(&mut self, _cells: Vec<Cell<T, VD, CD, D>>) -> Result<(), &'static str> {
         todo!("Assign neighbors")
     }
 
+    #[allow(unused)]
     fn assign_incident_cells(
         &mut self,
-        _vertices: Vec<Vertex<T, U, D>>,
+        _vertices: Vec<Vertex<T, VD, D>>,
     ) -> Result<(), &'static str> {
         todo!("Assign incident cells")
     }
@@ -471,7 +451,7 @@ mod tests {
         let tds: Tds<f64, usize, usize, 3> = Tds::new(points);
         let supercell = tds.supercell();
         let unwrapped_supercell =
-            supercell.unwrap_or_else(|err| panic!("Error creating supercell: {:?}!", err));
+            supercell.unwrap_or_else(|err| panic!("Error creating supercell: {:?}", err));
 
         assert_eq!(unwrapped_supercell.vertices.len(), 4);
         assert!(unwrapped_supercell
@@ -492,14 +472,16 @@ mod tests {
             Point::new([0.0, 1.0, 0.0]),
             Point::new([0.0, 0.0, 1.0]),
         ];
-        let mut tds: Tds<f64, usize, usize, 3> = Tds::new(points);
-        let cells = tds.bowyer_watson();
-        let unwrapped_cells = cells.unwrap_or_else(|err| panic!("Error creating cells: {:?}", err));
+        let tds: Tds<f64, usize, usize, 3> = Tds::new(points);
+        let result = tds.bowyer_watson().unwrap_or_else(|err| {
+            panic!("Error creating triangulation: {:?}", err);
+        });
 
-        assert_eq!(unwrapped_cells.len(), 1);
+        assert_eq!(result.number_of_vertices(), 4);
+        assert_eq!(result.number_of_cells(), 1);
 
         // Human readable output for cargo test -- --nocapture
-        println!("{:?}", unwrapped_cells);
+        println!("{:?}", result);
     }
 
     #[test]
@@ -525,5 +507,32 @@ mod tests {
 
         // Human readable output for cargo test -- --nocapture
         println!("Serialized = {}", serialized);
+    }
+
+    #[test]
+    fn uuid_collision() {
+        let mut tds: Tds<f64, usize, usize, 3> = Tds::new(vec![
+            Point::new([1.0, 2.0, 3.0]),
+            Point::new([5.0, 6.0, 7.0]),
+            Point::new([9.0, 10.0, 11.0]),
+            Point::new([13.0, 14.0, 15.0]),
+        ]);
+
+        tds.add(Vertex {
+            point: Point::new([9.5, 10.0, 11.0]),
+            uuid: Uuid::nil(),
+            incident_cell: None,
+            data: None
+        }).unwrap();
+
+        assert_eq!(
+            tds.add(Vertex {
+                point: Point::new([9.5, 10.5, 11.0]),
+                uuid: Uuid::nil(),
+                incident_cell: None,
+                data: None
+            }),
+            Err("Uuid already exists")
+        )
     }
 }
