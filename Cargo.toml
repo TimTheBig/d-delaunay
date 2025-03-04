@@ -1,6 +1,6 @@
 [package]
 name = "d-delaunay"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,11 +11,14 @@ derive_builder = "0.20.2"
 nalgebra = "0.33"
 num-traits = "0.2"
 peroxide = "0.39"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0" 
+serde = { version = "1.0", features = ["derive"], optional = true }
 serde_test = "1.0"
 thiserror = "2.0"
 uuid = { version = "1.15", features = ["v4", "fast-rng", "macro-diagnostics", "serde"] }
+
+[dev-dependencies]
+d-delaunay = { path = "./", features = ["serde"]}
+serde_json = "1.0" 
 
 [lints.rust]
 unsafe_code = { level = "forbid", priority = 3 }

@@ -6,12 +6,15 @@
 //! Facets are not stored in the `Triangulation Data Structure` (TDS)
 //! directly, but created on the fly when needed.
 
+use crate::Coord;
 use super::{cell::Cell, vertex::Vertex};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::hash::Hash;
 use thiserror::Error;
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, PartialOrd, Serialize)]
+#[derive(Clone, Debug, Default, Eq, PartialEq, PartialOrd)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// The [Facet] struct represents a facet of a d-dimensional simplex.
 /// Passing in a [Vertex] and a [Cell] containing that vertex to the
 /// constructor will create a [Facet] struct.
@@ -28,7 +31,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The [Cell] that contains this facet.
     pub cell: Cell<T, U, V, D>,
@@ -42,7 +45,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The `new` function is a constructor for the [Facet]. It takes
     /// in a [Cell] and a [Vertex] as arguments and returns a [Result]

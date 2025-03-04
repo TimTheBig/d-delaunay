@@ -64,9 +64,10 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "d-delaunay"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
+ "d-delaunay",
  "derive_builder",
  "nalgebra",
  "num-traits",

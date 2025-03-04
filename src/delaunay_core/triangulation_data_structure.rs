@@ -3,19 +3,22 @@
 //! Intended to match functionality of the
 //! [CGAL Triangulation](https://doc.cgal.org/latest/Triangulation/index.html).
 
+use crate::{Coord, Coordf64};
 use super::{
     cell::Cell, cell::CellBuilder, point::Point, utilities::find_extreme_coordinates,
     vertex::Vertex,
 };
 use na::{ComplexField, Const, OPoint};
 use nalgebra as na;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::cmp::{min, Ordering, PartialEq};
 use std::ops::{AddAssign, Div, SubAssign};
 use std::{collections::HashMap, hash::Hash, iter::Sum};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// The `Tds` struct represents a triangulation data structure with vertices
 /// and cells, where the vertices and cells are identified by UUIDs.
 ///
@@ -48,7 +51,7 @@ where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// A [HashMap] that stores [Vertex] objects with their corresponding [Uuid]s as
     /// keys. Each [Vertex] has a [Point] of type T, vertex data of type U,
@@ -79,7 +82,7 @@ where
     V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     f64: From<T>,
     for<'a> &'a T: Div<f64>,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The function creates a new instance of a triangulation data structure
     /// with given points, initializing the vertices and cells.
@@ -256,7 +259,7 @@ where
     pub fn bowyer_watson(mut self) -> Result<Self, anyhow::Error>
     where
         OPoint<T, Const<D>>: From<[f64; D]>,
-        [f64; D]: Default + DeserializeOwned + Serialize + Sized,
+        [f64; D]: Coordf64,
     {
         // Create super-cell that contains all vertices
         let supercell = self.supercell()?;

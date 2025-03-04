@@ -1,11 +1,14 @@
 //! Data and operations on d-dimensional [vertices](https://en.wikipedia.org/wiki/Vertex_(computer_graphics)).
 
+use crate::Coord;
 use super::{point::Point, utilities::make_uuid};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash, option::Option};
 use uuid::Uuid;
 
-#[derive(Builder, Clone, Copy, Debug, Default, Deserialize, Eq, Serialize)]
+#[derive(Builder, Clone, Copy, Debug, Default, Eq)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
 /// The [Vertex] struct represents a vertex in a triangulation with a [Point],
 /// a unique identifier, an optional incident cell identifier, and optional
 /// data.
@@ -31,7 +34,7 @@ pub struct Vertex<T, U, const D: usize>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The coordinates of the vertex in a D-dimensional space.
     pub point: Point<T, D>,
@@ -50,7 +53,7 @@ impl<T, U, const D: usize> Vertex<T, U, D>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     /// The function `from_points` takes a vector of points and returns a
     /// vector of vertices, using the `new` method.
@@ -125,7 +128,7 @@ impl<T, U, const D: usize> PartialEq for Vertex<T, U, D>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
@@ -141,7 +144,7 @@ impl<T, U, const D: usize> PartialOrd for Vertex<T, U, D>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Copy + Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

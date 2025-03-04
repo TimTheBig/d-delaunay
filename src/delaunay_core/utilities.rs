@@ -1,7 +1,7 @@
 //! Utility functions
 
+use crate::Coord;
 use super::vertex::Vertex;
-use serde::{de::DeserializeOwned, Serialize};
 use std::{cmp::Ordering, collections::HashMap, hash::Hash};
 use uuid::Uuid;
 
@@ -66,7 +66,7 @@ pub fn find_extreme_coordinates<T, U, const D: usize>(
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Default + DeserializeOwned + Serialize + Sized,
+    [T; D]: Coord,
 {
     let mut min_coords = [Default::default(); D];
 
