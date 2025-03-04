@@ -23,6 +23,13 @@ use uuid::Uuid;
 /// [simplex](https://en.wikipedia.org/wiki/Simplex) with vertices, a unique
 /// identifier, optional neighbors, and optional data.
 ///
+/// A simplex is a generalization of the notion of a triangle or tetrahedron to arbitrary dimensions.
+/// - a 0-dimensional simplex is a point,
+/// - a 1-dimensional simplex is a line segment,
+/// - a 2-dimensional simplex is a triangle,
+/// - a 3-dimensional simplex is a tetrahedron,
+/// - a 4-dimensional simplex is a 5-cell
+///
 /// # Properties:
 ///
 /// * `vertices`: A container of vertices. Each [Vertex] has a type T, optional

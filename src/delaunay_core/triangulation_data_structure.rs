@@ -54,13 +54,13 @@ where
     [T; DIMS]: Coord,
 {
     /// A [HashMap] that stores [Vertex] objects with their corresponding [Uuid]s as
-    /// keys. Each [Vertex] has a [Point] of type T, vertex data of type U,
+    /// keys. Each [Vertex] has a [Point] of type T, vertex data of type VD,
     /// and a constant D representing the dimension.
     pub vertices: HashMap<Uuid, Vertex<T, VD, DIMS>>,
 
     /// A [HashMap] that stores [Cell] objects with their corresponding [Uuid]s as
     /// keys.
-    /// Each [Cell] has one or more [Vertex] objects and cell data of type V.
+    /// Each [Cell] has one or more [Vertex] objects and cell data of type CD.
     /// Note the dimensionality of the cell may differ from D, though the [Tds]
     /// only stores cells of maximal dimensionality D and infers other lower
     /// dimensional cells from the maximal cells and their vertices.
