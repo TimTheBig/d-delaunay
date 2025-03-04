@@ -46,17 +46,17 @@ use uuid::Uuid;
 ///
 /// In general, vertices are embedded into D-dimensional Euclidean space,
 /// and so the [Tds] is a finite simplicial complex.
-pub struct Tds<T, U, V, const D: usize>
+pub struct Tds<T, VD, CD, const DIMS: usize>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
-    U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Coord,
+    VD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    CD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    [T; DIMS]: Coord,
 {
     /// A [HashMap] that stores [Vertex] objects with their corresponding [Uuid]s as
     /// keys. Each [Vertex] has a [Point] of type T, vertex data of type U,
     /// and a constant D representing the dimension.
-    pub vertices: HashMap<Uuid, Vertex<T, U, D>>,
+    pub vertices: HashMap<Uuid, Vertex<T, VD, DIMS>>,
 
     /// A [HashMap] that stores [Cell] objects with their corresponding [Uuid]s as
     /// keys.
@@ -64,10 +64,10 @@ where
     /// Note the dimensionality of the cell may differ from D, though the [Tds]
     /// only stores cells of maximal dimensionality D and infers other lower
     /// dimensional cells from the maximal cells and their vertices.
-    pub cells: HashMap<Uuid, Cell<T, U, V, D>>,
+    pub cells: HashMap<Uuid, Cell<T, VD, CD, DIMS>>,
 }
 
-impl<T, U, V, const D: usize> Tds<T, U, V, D>
+impl<T, VD, CD, const D: usize> Tds<T, VD, CD, D>
 where
     T: AddAssign<f64>
         + Clone
@@ -78,8 +78,8 @@ where
         + PartialOrd
         + SubAssign<f64>
         + Sum,
-    U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    V: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    VD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
+    CD: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
     f64: From<T>,
     for<'a> &'a T: Div<f64>,
     [T; D]: Coord,
@@ -132,11 +132,11 @@ where
     /// let result = tds.add(vertex);
     /// assert!(result.is_ok());
     /// ```
-    pub fn add(&mut self, vertex: Vertex<T, U, D>) -> Result<(), &'static str> {
+    pub fn add(&mut self, vertex: Vertex<T, VD, D>) -> Result<(), &'static str> {
         // Don't add if vertex with that point already exists
         for val in self.vertices.values() {
             if val.point.coords == vertex.point.coords {
-                return Err("Vertex already exists!");
+                return Err("Vertex already exists");
             }
         }
 
@@ -146,7 +146,7 @@ where
 
         // Return an error if there is a uuid collision
         match result {
-            Some(_) => Err("Uuid already exists!"),
+            Some(_) => Err("Uuid already exists"),
             None => Ok(()),
         }
     }
@@ -209,7 +209,7 @@ where
     /// # Returns:
     ///
     /// A [Cell] that encompasses all [Vertex] objects in the triangulation.
-    fn supercell(&self) -> Result<Cell<T, U, V, D>, anyhow::Error> {
+    fn supercell(&self) -> Result<Cell<T, VD, CD, D>, anyhow::Error> {
         // First, find the min and max coordinates
         let mut min_coords = find_extreme_coordinates(self.vertices.clone(), Ordering::Less);
         let mut max_coords = find_extreme_coordinates(self.vertices.clone(), Ordering::Greater);
@@ -238,8 +238,9 @@ where
             }
 
             // Add slice of max_point_coords matrix as a new point
-            let point =
-                Point::<T, D>::new(row_vec.into_boxed_slice().into_vec().try_into().unwrap());
+            let point = Point::<T, D>::new(
+                row_vec.into_boxed_slice().into_vec().try_into().unwrap()
+            );
             points.push(point);
         }
 
@@ -319,14 +320,14 @@ where
     }
 
     #[allow(unused)]
-    fn assign_neighbors(&mut self, _cells: Vec<Cell<T, U, V, D>>) -> Result<(), &'static str> {
+    fn assign_neighbors(&mut self, _cells: Vec<Cell<T, VD, CD, D>>) -> Result<(), &'static str> {
         todo!("Assign neighbors")
     }
 
     #[allow(unused)]
     fn assign_incident_cells(
         &mut self,
-        _vertices: Vec<Vertex<T, U, D>>,
+        _vertices: Vec<Vertex<T, VD, D>>,
     ) -> Result<(), &'static str> {
         todo!("Assign incident cells")
     }
@@ -450,7 +451,7 @@ mod tests {
         let tds: Tds<f64, usize, usize, 3> = Tds::new(points);
         let supercell = tds.supercell();
         let unwrapped_supercell =
-            supercell.unwrap_or_else(|err| panic!("Error creating supercell: {:?}!", err));
+            supercell.unwrap_or_else(|err| panic!("Error creating supercell: {:?}", err));
 
         assert_eq!(unwrapped_supercell.vertices.len(), 4);
         assert!(unwrapped_supercell
@@ -506,5 +507,32 @@ mod tests {
 
         // Human readable output for cargo test -- --nocapture
         println!("Serialized = {}", serialized);
+    }
+
+    #[test]
+    fn uuid_collision() {
+        let mut tds: Tds<f64, usize, usize, 3> = Tds::new(vec![
+            Point::new([1.0, 2.0, 3.0]),
+            Point::new([5.0, 6.0, 7.0]),
+            Point::new([9.0, 10.0, 11.0]),
+            Point::new([13.0, 14.0, 15.0]),
+        ]);
+
+        tds.add(Vertex {
+            point: Point::new([9.5, 10.0, 11.0]),
+            uuid: Uuid::nil(),
+            incident_cell: None,
+            data: None
+        }).unwrap();
+
+        assert_eq!(
+            tds.add(Vertex {
+                point: Point::new([9.5, 10.5, 11.0]),
+                uuid: Uuid::nil(),
+                incident_cell: None,
+                data: None
+            }),
+            Err("Uuid already exists")
+        )
     }
 }

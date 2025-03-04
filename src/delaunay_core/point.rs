@@ -15,13 +15,13 @@ use serde::{Deserialize, Serialize};
 ///   type `T` with a length of `D`. The type `T` is a generic type parameter,
 ///   which means it can be any type. The length `D` is a constant unsigned
 ///   integer known at compile time.
-pub struct Point<T, const D: usize>
+pub struct Point<T, const DIMS: usize>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
-    [T; D]: Coord,
+    [T; DIMS]: Coord,
 {
     /// The coordinates of the point.
-    pub coords: [T; D],
+    pub coords: [T; DIMS],
 }
 
 impl<T, const D: usize> From<[T; D]> for Point<f64, D>

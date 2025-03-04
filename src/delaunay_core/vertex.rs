@@ -30,14 +30,14 @@ use uuid::Uuid;
 ///
 /// U is intended to be data associated with the vertex, e.g. a string, which
 /// implements Eq, Hash, Ord, PartialEq, and PartialOrd.
-pub struct Vertex<T, U, const D: usize>
+pub struct Vertex<T, U, const DIMS: usize>
 where
     T: Clone + Copy + Default + PartialEq + PartialOrd,
     U: Clone + Copy + Eq + Hash + Ord + PartialEq + PartialOrd,
-    [T; D]: Coord,
+    [T; DIMS]: Coord,
 {
     /// The coordinates of the vertex in a D-dimensional space.
-    pub point: Point<T, D>,
+    pub point: Point<T, DIMS>,
     /// A universally unique identifier for the vertex.
     #[builder(setter(skip), default = "make_uuid()")]
     pub uuid: Uuid,

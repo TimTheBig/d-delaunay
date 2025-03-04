@@ -2,6 +2,9 @@
 name = "d-delaunay"
 version = "0.1.1"
 edition = "2021"
+description = "D-dimensional Delaunay triangulations, inspired by CGAL."
+readme = "README.md"
+rust-version = "1.78.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
