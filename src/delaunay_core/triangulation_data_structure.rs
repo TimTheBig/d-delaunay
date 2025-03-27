@@ -123,9 +123,9 @@ where
     /// # Example:
     ///
     /// ```
-    /// use d_delaunay::delaunay_core::triangulation_data_structure::Tds;
-    /// use d_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
-    /// use d_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::triangulation_data_structure::Tds;
+    /// use dd_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
+    /// use dd_delaunay::delaunay_core::point::Point;
     /// let mut tds: Tds<f64, usize, usize, 3> = Tds::new(Vec::new());
     /// let point = Point::new([1.0, 2.0, 3.0]);
     /// let vertex = VertexBuilder::default().point(point).build().unwrap();
@@ -161,10 +161,10 @@ where
     /// # Example:
     ///
     /// ```
-    /// use d_delaunay::delaunay_core::triangulation_data_structure::Tds;
+    /// use dd_delaunay::delaunay_core::triangulation_data_structure::Tds;
     /// let tds: Tds<f64, usize, usize, 3> = Tds::new(Vec::new());
-    /// use d_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
-    /// use d_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
+    /// use dd_delaunay::delaunay_core::point::Point;
     /// let mut tds: Tds<f64, usize, usize, 3> = Tds::new(Vec::new());
     /// let new_vertex1 = VertexBuilder::default().point(Point::new([1.0, 2.0, 3.0])).build().unwrap();
     /// let _ = tds.add(new_vertex1);
@@ -184,7 +184,7 @@ where
     /// # Example:
     ///
     /// ```
-    /// use d_delaunay::delaunay_core::triangulation_data_structure::Tds;
+    /// use dd_delaunay::delaunay_core::triangulation_data_structure::Tds;
     /// let tds: Tds<f64, usize, usize, 3> = Tds::new(Vec::new());
     /// assert_eq!(tds.dim(), -1);
     /// ```
