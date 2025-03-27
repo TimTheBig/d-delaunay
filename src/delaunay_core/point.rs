@@ -58,7 +58,7 @@ where
     /// # Example
     ///
     /// ```
-    /// use d_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::point::Point;
     /// let point = Point::new([1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(point.coords, [1.0, 2.0, 3.0, 4.0]);
     /// ```
@@ -76,7 +76,7 @@ where
     /// # Example
     ///
     /// ```
-    /// use d_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::point::Point;
     /// let point = Point::new([1.0, 2.0, 3.0, 4.0]);
     /// assert_eq!(point.dim(), 4);
     /// ```
@@ -93,7 +93,7 @@ where
     ///
     /// # Example
     /// ```
-    /// use d_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::point::Point;
     /// let point: Point<f64, 4> = Point::origin();
     /// assert_eq!(point.coords, [0.0, 0.0, 0.0, 0.0]);
     /// ```

@@ -15,7 +15,7 @@ use uuid::Uuid;
 /// # Example
 ///
 /// ```
-/// use d_delaunay::delaunay_core::utilities::make_uuid;
+/// use dd_delaunay::delaunay_core::utilities::make_uuid;
 /// let uuid = make_uuid();
 /// assert_eq!(uuid.get_version_num(), 4);
 /// ```
@@ -44,9 +44,9 @@ pub fn make_uuid() -> Uuid {
 /// # Example
 ///
 /// ```
-/// use d_delaunay::delaunay_core::utilities::find_extreme_coordinates;
-/// use d_delaunay::delaunay_core::vertex::Vertex;
-/// use d_delaunay::delaunay_core::point::Point;
+/// use dd_delaunay::delaunay_core::utilities::find_extreme_coordinates;
+/// use dd_delaunay::delaunay_core::vertex::Vertex;
+/// use dd_delaunay::delaunay_core::point::Point;
 /// use std::collections::HashMap;
 /// use std::cmp::Ordering;
 /// let points = vec![
@@ -86,7 +86,7 @@ where
 /// # Example
 ///
 /// ```
-/// use d_delaunay::delaunay_core::utilities::vec_to_array;
+/// use dd_delaunay::delaunay_core::utilities::vec_to_array;
 /// let vec = vec![1.0, 2.0, 3.0];
 /// let array = vec_to_array::<3>(vec).unwrap();
 /// assert_eq!(array, [1.0, 2.0, 3.0]);

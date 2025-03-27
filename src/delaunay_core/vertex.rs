@@ -101,8 +101,8 @@ where
     ///
     /// # Example:
     /// ```
-    /// use d_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
-    /// use d_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
+    /// use dd_delaunay::delaunay_core::point::Point;
     /// let point = Point::new([1.0, 2.0, 3.0, 4.0]);
     /// let vertex: Vertex<f64, Option<()>, 4> = VertexBuilder::default().point(point).build().unwrap();
     /// assert_eq!(vertex.dim(), 4);

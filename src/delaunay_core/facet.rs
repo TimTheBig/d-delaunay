@@ -64,10 +64,10 @@ where
     /// # Example
     ///
     /// ```
-    /// use d_delaunay::delaunay_core::cell::{Cell, CellBuilder};
-    /// use d_delaunay::delaunay_core::facet::Facet;
-    /// use d_delaunay::delaunay_core::point::Point;
-    /// use d_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
+    /// use dd_delaunay::delaunay_core::cell::{Cell, CellBuilder};
+    /// use dd_delaunay::delaunay_core::facet::Facet;
+    /// use dd_delaunay::delaunay_core::point::Point;
+    /// use dd_delaunay::delaunay_core::vertex::{Vertex, VertexBuilder};
     /// let vertex1 = VertexBuilder::default().point(Point::new([0.0, 0.0, 0.0])).build().unwrap();
     /// let vertex2 = VertexBuilder::default().point(Point::new([1.0, 0.0, 0.0])).build().unwrap();
     /// let vertex3 = VertexBuilder::default().point(Point::new([0.0, 1.0, 0.0])).build().unwrap();
