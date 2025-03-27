@@ -3,6 +3,7 @@ name = "dd-delaunay"
 version = "0.1.1"
 edition = "2021"
 description = "D-dimensional Delaunay triangulations, inspired by CGAL."
+repository = "https://github.com/TimTheBig/d-delaunay"
 readme = "README.md"
 rust-version = "1.78.0"
 

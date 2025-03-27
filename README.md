@@ -1,12 +1,11 @@
 # d-delaunay
 
-[![CI](https://github.com/acgetchell/d-delaunay/actions/workflows/ci.yml/badge.svg)](https://github.com/acgetchell/d-delaunay/actions/workflows/ci.yml)
-[![rust-clippy analyze](https://github.com/acgetchell/d-delaunay/actions/workflows/rust-clippy.yml/badge.svg)](https://github.com/acgetchell/d-delaunay/actions/workflows/rust-clippy.yml)
-[![codecov](https://codecov.io/gh/acgetchell/d-delaunay/graph/badge.svg?token=WT7qZGT9bO)](https://codecov.io/gh/acgetchell/d-delaunay)
-[![Audit dependencies](https://github.com/acgetchell/d-delaunay/actions/workflows/audit.yml/badge.svg)](https://github.com/acgetchell/d-delaunay/actions/workflows/audit.yml)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/3cad94f994f5434d877ae77f0daee692)](https://app.codacy.com/gh/acgetchell/d-delaunay/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![CI](https://github.com/TimTheBig/d_delaunay/actions/workflows/ci.yml/badge.svg)](https://github.com/TimTheBig/d_delaunay/actions/workflows/ci.yml)
+[![rust-clippy analyze](https://github.com/TimTheBig/d_delaunay/actions/workflows/rust-clippy.yml/badge.svg)](https://github.com/TimTheBig/d_delaunay/actions/workflows/rust-clippy.yml)
+[![codecov](https://codecov.io/gh/TimTheBig/d_delaunay/graph/badge.svg?token=WT7qZGT9bO)](https://codecov.io/gh/TimTheBig/d_delaunay)
+[![Audit dependencies](https://github.com/TimTheBig/d_delaunay/actions/workflows/audit.yml/badge.svg)](https://github.com/TimTheBig/d_delaunay/actions/workflows/audit.yml)
 
-D-dimensional Delaunay triangulations in [Rust], inspired by [CGAL].
+D-dimensional Delaunay triangulations in [Rust], inspired by [CGAL]. A fork of [d-delaunay](https://github.com/acgetchell/d-delaunay).
 
 ## Introduction
 
